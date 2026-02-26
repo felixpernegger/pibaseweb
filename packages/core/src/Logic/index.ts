@@ -2,7 +2,7 @@ export { default as ImplicationIndex } from './ImplicationIndex.js'
 export { Derivations } from './Derivations.js'
 export { Contradiction, Proof } from './Prover.js'
 
-import { Formula, negate } from '../Formula.js'
+import { type TruthValue, Formula, hasUndecidable, negate } from '../Formula.js'
 import ImplicationIndex from './ImplicationIndex.js'
 import Prover, { Contradiction, Proof, Result } from './Prover.js'
 import { Id } from './Types.js'
@@ -11,7 +11,7 @@ import { Id } from './Types.js'
 // find either the collection of derivable traits, or a contradiction
 export function deduceTraits<TheoremId = Id, PropertyId = Id>(
   implications: ImplicationIndex<TheoremId, PropertyId>,
-  traits: Map<PropertyId, boolean>,
+  traits: Map<PropertyId, TruthValue>,
 ): Result<TheoremId, PropertyId> {
   return new Prover(implications, traits).run()
 }
@@ -71,14 +71,16 @@ export function proveTheorem<TheoremId = Id, PropertyId = Id>(
     return formatProof(result.contradiction)
   }
 
-  contradiction = prover.force('given', negate(then))
-  if (contradiction) {
-    return formatProof(contradiction)
-  }
+  if (!hasUndecidable(then)) {
+    contradiction = prover.force('given', negate(then))
+    if (contradiction) {
+      return formatProof(contradiction)
+    }
 
-  result = prover.run()
-  if (result.kind === 'contradiction') {
-    return formatProof(result.contradiction)
+    result = prover.run()
+    if (result.kind === 'contradiction') {
+      return formatProof(result.contradiction)
+    }
   }
 }
 

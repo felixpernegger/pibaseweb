@@ -1,9 +1,11 @@
 import {
+  type TruthValue,
   And,
   Atom,
   Formula,
   Or,
   evaluate,
+  hasUndecidable,
   negate,
   properties,
 } from '../Formula.js'
@@ -35,20 +37,20 @@ export default class Prover<
     PropertyId
   >,
 > {
-  private traits: Map<PropertyId, boolean>
+  private traits: Map<PropertyId, TruthValue>
   private derivations: Derivations<TheoremId, PropertyId>
 
   private queue: Queue<TheoremId, PropertyId, Theorem>
 
   constructor(
     implications: ImplicationIndex<TheoremId, PropertyId, Theorem>,
-    traits = new Map<PropertyId, boolean>(),
+    traits = new Map<PropertyId, TruthValue>(),
   ) {
     this.traits = traits
     this.derivations = new Derivations([...traits.keys()])
     this.queue = new Queue(implications)
 
-    traits.forEach((_: boolean, id: PropertyId) => {
+    traits.forEach((_: TruthValue, id: PropertyId) => {
       this.queue.mark(id)
     })
   }
@@ -95,7 +97,7 @@ export default class Prover<
       ])
     } else if (av === true) {
       return this.force(implication.id, c, [...properties(a)])
-    } else if (cv === false) {
+    } else if (cv === false && !hasUndecidable(a)) {
       return this.force(implication.id, negate(a), [...properties(c)])
     }
   }
@@ -114,16 +116,39 @@ export default class Prover<
   ): Contradiction<TheoremId, PropertyId> | undefined {
     const property = formula.property
 
-    if (this.traits.has(property)) {
-      if (this.traits.get(property) !== formula.value) {
-        return this.contradiction(theorem, [...support, property])
-      } else {
+    const existing = this.traits.get(property)
+
+    if (existing !== undefined) {
+      if (existing === formula.value) {
         return
       }
+      // undecidable has lower priority: true/false overrides it
+      if (existing === 'undecidable' && formula.value !== 'undecidable') {
+        this.traits.set(property, formula.value as TruthValue)
+        this.derivations.overrideGiven(property)
+        this.derivations.addEvidence(
+          property,
+          formula.value as TruthValue,
+          theorem,
+          support,
+        )
+        this.queue.mark(property)
+        return
+      }
+      // don't let undecidable override a definite value
+      if (formula.value === 'undecidable') {
+        return
+      }
+      return this.contradiction(theorem, [...support, property])
     }
 
-    this.traits.set(property, formula.value)
-    this.derivations.addEvidence(property, formula.value, theorem, support)
+    this.traits.set(property, formula.value as TruthValue)
+    this.derivations.addEvidence(
+      property,
+      formula.value as TruthValue,
+      theorem,
+      support,
+    )
     this.queue.mark(property)
   }
 
