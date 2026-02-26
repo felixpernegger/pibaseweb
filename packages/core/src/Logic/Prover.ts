@@ -55,6 +55,10 @@ export default class Prover<
     })
   }
 
+  enqueue(theorems: Theorem[]): void {
+    this.queue.addAll(theorems)
+  }
+
   run(): Result<TheoremId, PropertyId> {
     let theorem
     while ((theorem = this.queue.shift())) {
