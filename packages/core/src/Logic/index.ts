@@ -22,8 +22,8 @@ export function deduceTraits<TheoremId = Id, PropertyId = Id>(
     t => hasUndecidable(t.when) || hasUndecidable(t.then),
   )
 
-  const normalIndex = new ImplicationIndex(normal)
-  const prover = new Prover(normalIndex, traits)
+  const normalIndex = new ImplicationIndex<TheoremId, PropertyId>(normal)
+  const prover = new Prover<TheoremId, PropertyId>(normalIndex, traits)
   const result = prover.run()
   if (result.kind === 'contradiction' || undecidable.length === 0) {
     return result
