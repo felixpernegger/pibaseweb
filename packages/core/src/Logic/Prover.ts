@@ -90,14 +90,14 @@ export default class Prover<
     const av = evaluate(a, this.traits)
     const cv = evaluate(c, this.traits)
 
-    if (av === true && cv === false) {
+    if (av === true && cv === false && !hasUndecidable(c)) {
       return this.contradiction(implication.id, [
         ...properties(a),
         ...properties(c),
       ])
     } else if (av === true) {
       return this.force(implication.id, c, [...properties(a)])
-    } else if (cv === false && !hasUndecidable(a)) {
+    } else if (cv === false && !hasUndecidable(a) && !hasUndecidable(c)) {
       return this.force(implication.id, negate(a), [...properties(c)])
     }
   }
