@@ -18,7 +18,7 @@ export function internal(
           const property = properties.find(Number(pid))
           const trait = space && property && traits.find(space, property)
           let title = undefined
-          if (trait?.value === 'unprovable') {
+          if (trait?.value === 'undecidable') {
             title = `"${space ? space.name : 'S' + sid} is ${
               property ? property.name : 'P' + pid
             }" is logically independent`
