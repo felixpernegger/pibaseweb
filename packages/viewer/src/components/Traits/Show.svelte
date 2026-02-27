@@ -51,7 +51,7 @@
     <Icons.Question />
   {/if}
   {#if trait}
-    {#if trait.value === 'unprovable'}
+    {#if trait.value === 'undecidable'}
       "<Link.Space {space} />
       is <Link.Property {property} />" is logically independent
     {:else}
