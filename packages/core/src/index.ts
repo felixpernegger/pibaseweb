@@ -11,6 +11,7 @@ export {
   type Atom,
   type Or,
   type TruthValue,
+  hasUndecidable,
 } from './Formula.js'
 export { parser } from './Parser.js'
 export { type Property, PropertyPage } from './Property.js'
